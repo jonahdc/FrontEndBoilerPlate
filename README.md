@@ -1,6 +1,6 @@
 # Front End Boiler Plate
 
-As the name suggests, this repo provides a simple set-up to get anyone started with front-end development based on Gulp and Bower. 
+As the name suggests, this repo provides a simple setup to get anyone started with front-end development based on Gulp and Bower. 
 
 This streamlines the workflow involving the following:
 1. Sass compilation
