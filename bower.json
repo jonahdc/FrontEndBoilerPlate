@@ -1,0 +1,22 @@
+{
+  "name": "tagist",
+  "description": "tags network",
+  "main": "index.js",
+  "license": "ISC",
+  "moduleType": [],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "lib",
+    "test",
+    "tests"
+  ],
+  "install": {
+    "path": "dist/scripts/libs"
+  },
+  "dependencies": {
+    "jquery": "~2.2.1"
+  }
+}
