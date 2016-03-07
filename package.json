@@ -11,7 +11,8 @@
   "devDependencies": {
     "bower": "^1.7.2",
     "bower-installer": "^1.2.0",
-    "gulp": "^3.9.0",
+    "browser-sync": "^2.11.1",
+    "gulp": "^3.9.1",
     "gulp-concat": "^2.6.0",
     "gulp-jshint": "^2.0.0",
     "gulp-livereload": "^3.8.1",

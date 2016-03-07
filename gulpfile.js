@@ -1,113 +1,135 @@
 ;
 (function() {
-  var gulp = require('gulp'),
-    sass = require('gulp-sass'),
-    jshint = require('gulp-jshint'),
-    minifycss = require('gulp-minify-css'),
-    concat = require('gulp-concat'),
-    uglify = require('gulp-uglify'),
-    notify = require('gulp-notify'),
-    replace = require('gulp-replace'),
-    plumber = require('gulp-plumber'),
-    rename = require('gulp-rename'),
-    livereload = require('gulp-livereload'),
-    lr = require('tiny-lr'),
-    server = lr();
+  var gulp = require('gulp');
+  var sass = require('gulp-sass');
+  var jshint = require('gulp-jshint');
+  var minifycss = require('gulp-minify-css');
+  var concat = require('gulp-concat');
+  var uglify = require('gulp-uglify');
+  var notify = require('gulp-notify');
+  var replace = require('gulp-replace');
+  var plumber = require('gulp-plumber');
+  var rename = require('gulp-rename');
+  var browserSync = require('browser-sync').create();
+  var lr = require('tiny-lr');
+  var server = lr();
 
-  //captures timestamp
-  var timeStamp = function() {
-    var date = new Date();
-    return date.getFullYear().toString() +
-      ('0' + date.getMonth().toString()).slice(-2) +
-      ('0' + date.getDate().toString()).slice(-2) +
-      date.getTime();
-  };
-
+  /*
+   * Config
+   */
   var config = {
     scripts: {
-      srcPath: 'scripts/*.js',
-      destPath: config.scripts.destPath,
-      mainFile: 'main.js'
+      srcPath: 'scripts/**/*.js',
+      destPath: 'dist/scripts/src',
+      outputFile: 'main.js'
     },
     styles: {
-      srcPath: 'sass/*.scss',
+      srcPath: './sass/**/*.scss',
       destPath: 'dist/css',
-      minFile: 'base.min.css',
+      outputFile: 'base.min.css',
     },
     suffix: {
       min: '.min'
     }
   };
 
-  // Styles
+  /*
+   * Tasks
+   */
+
+  // Compiles Scss files and minify
   gulp.task('styles', function() {
     return gulp.src(config.styles.srcPath)
+      .pipe(plumber({
+        errorHandler: handleError
+      }))
       .pipe(sass())
       .pipe(rename({
         suffix: config.suffix.min
       }))
       .pipe(minifycss())
-      .pipe(plumber({
-        errorHandler: handleError
-      }))
       .pipe(gulp.dest(config.styles.destPath))
-      .pipe(livereload(server))
       .pipe(notify({
         message: 'Styles task complete'
       }))
 
   });
 
+  //Lints JS files
   gulp.task('lint', function() {
     return gulp.src(config.scripts.srcPath)
+      .pipe(plumber({
+        errorHandler: handleError
+      }))
       .pipe(jshint('.jshintrc'))
       .pipe(jshint.reporter('default'))
   });
 
-  //Concat all the js scripts, uglify and move to dist
+  //Concat all the JS scripts and uglify
   gulp.task('scripts', function() {
     return gulp.src(config.scripts.srcPath)
-      .pipe(concat(config.scripts.mainFile))
+      .pipe(plumber({
+        errorHandler: handleError
+      }))
+      .pipe(concat(config.scripts.outputFile))
       .pipe(rename({
         suffix: config.suffix.min
       }))
       .pipe(uglify())
       .pipe(gulp.dest(config.scripts.destPath))
-      .pipe(livereload(server))
       .pipe(notify({
         message: 'Scripts task complete'
       }))
   });
 
-  gulp.task('default', ['styles', 'lint', 'scripts', 'watch']);
-
+  gulp.task('default', ['styles',
+    'lint',
+    'scripts',
+    'watch'
+  ]);
 
   // Watch Files For Changes
   gulp.task('watch', function() {
-    server.listen(40000, function(err) {
-      if (err) {
-        return console.log(err);
-      }
-      gulp.watch('scripts/**/*.js', ['lint', 'scripts']);
-      gulp.watch('sass/**/*.scss', ['styles']);
+    browserSync.init({
+      server: "./dist"
     });
 
+    gulp.watch(config.scripts.srcPath, ['lint', 'scripts']).on('change', browserSync.reload);
+    gulp.watch(config.styles.srcPath, ['styles']).on('change', browserSync.reload);
+    gulp.watch("dist/*.html").on('change', browserSync.reload);
   });
 
-  function handleError(error) {
-    console.log(error);
-    this.emit('end');
-  }
 
+  //Cachebust JS/CSS files called in html files
   gulp.task('cachebust', function() {
-    console.log(config.scripts.mainFile + '?' + timeStamp());
-    var regex = new RegExp(config.scripts.mainFile + "\?([0-9]*)/g");
-    console.log(regex);
+    var regex = new RegExp(config.scripts.outputFile + "\?([0-9]*)/g");
+
     return gulp.src('dist/*.html')
-      .pipe(replace(regex, config.scripts.mainFile + '?' + timeStamp()))
+      .pipe(plumber({
+        errorHandler: handleError
+      }))
+      .pipe(replace(regex, config.scripts.outputFile + '?' + timeStamp()))
       .pipe(gulp.dest('dist/'))
       .pipe(notify({
         message: 'CSS/JS Cachebust task complete'
       }));
   });
 }());
+
+/*
+ * Helper functions
+ */
+
+function handleError(error) {
+  console.log(error);
+  this.emit('end');
+}
+
+//captures timestamp
+function timeStamp() {
+  var date = new Date();
+  return date.getFullYear().toString() +
+    ('0' + date.getMonth().toString()).slice(-2) +
+    ('0' + date.getDate().toString()).slice(-2) +
+    date.getTime();
+}
