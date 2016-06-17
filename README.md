@@ -3,6 +3,7 @@
 As the name suggests, this repo provides a simple setup to get anyone started with front-end development based on Gulp and Bower. 
 
 This streamlines the workflow involving the following:
+
 1. Sass compilation
 2. JavaScript linting
 3. Uglifying
